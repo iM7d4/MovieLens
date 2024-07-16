@@ -41,3 +41,37 @@ wget https://fred.stlouisfed.org/graph/fredgraph.csv?bgcolor=%23e1e9f0&chart_typ
 * Redshift is chosen as the cloud Data Warehouse as it is highly scalable. Should our data grow in size, we can provision more nodes or scale up, to handle the larger volume of data.
 
 * Docker is used to encapsulate package dependencies the code may have, to allow the code to run on any machine
+
+## Data Model
+---
+* The data model for this project is as shown below:  
+  
+![Data Model]()  
+  
+The approach taken, is to normalize the data. This will lead to more efficient UPDATES and DELETES as and when required.
+
+## ETL Pipeline
+---
+The ETL process runs through an Airflow DAG:  
+  
+![Data Model]()  
+  
+The process is as follows:
+1. We create the tables and staging tables (if they do not exist)  
+2. We perform an update and insert, based on new data coming in  
+3. Run a data quality check (check that tables have more than 1 row and there are no null ids)
+
+## Potential Improvements
+---
+* The assumption that I have made is that the data volume will not increase subtantially and the pipeline is only required to run once
+
+1. <ins> What if data is increased by 100x? </ins>
+* We can run a increase the number of worker nodes on the spark cluster, to improve performance of compute. Furthermore, airflow schedules can be utilized to pull only a subset of the data at a time, to reduce volume of data handled at any one time.
+  
+2. <ins> What if data pipeline needs to be run by 7am daily? </ins>
+* We can turn on the EC2 machine and run the pipeline before 7am daily. Currently, the schedule of the airflow pipeline is set to ingest only once. We can set it to a daily schedule, to ingest new data coming in daily. We should add a new node to our Airflow DAG, to download data using API/get request and transfer to S3. In addition, to handle heavy workloads when backdating, CeleryExecutor should be used to run processes in a distributed fashion, ensuring there is no single point of failure. Furthermore, We can make use of Airflow's SLA feature, to send alerts should pipeline not have succeeded before a certain time (for eg, 6:00am)
+
+3. <ins> What if the database needs to be accessed by 100+ users? </ins>
+* Redshift should not have an issue handling many users, but we should be careful to scale up/scale out with more nodes whenever necessary. To provide efficiency to queries, we can seek to understand common queries users have, so we can tweak our data model. Aggregated data tables can be provided beforehand to reduce query times. We can also assign sort keys according to users querying needs for each table.
+
+
