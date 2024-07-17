@@ -74,4 +74,66 @@ The process is as follows:
 3. <ins> What if the database needs to be accessed by 100+ users? </ins>
 * Redshift should not have an issue handling many users, but we should be careful to scale up/scale out with more nodes whenever necessary. To provide efficiency to queries, we can seek to understand common queries users have, so we can tweak our data model. Aggregated data tables can be provided beforehand to reduce query times. We can also assign sort keys according to users querying needs for each table.
 
+## Development
+---
+  
+<ins>Setting up</ins>
+* Build the docker/pull docker image  
+    ```bash 
+    # Build the docker image  
+    docker build -t {IMAGE_NAME} .
+    ```
+* Alternatively, pull the docker image I have pushed to Dockerhub:
+    ```bash 
+    # Build the docker image  
+    docker pull {IMAGE_NAME}
+    ```
 
+* Replace the webserver image in docker-compose-LocalExecutor.yml to the image name of the Docker image you have built/pulled.
+    ```yml
+     webserver:
+        image: {IMAGE_NAME}
+    ```
+
+* Run `docker-compose -f docker-compose-LocalExecutor.yml up -d `. Your airflow server should be initiated and will be up and running. Visit `https://{your ec2 ip address}:8080` to view Airflow UI
+
+<ins>Add necessary connections and variables in Airflow UI</ins>  
+There are 4 variables to be defined:  
+1. `movie_s3_config`. It is defined as a json format as follows:
+    ```
+    {
+        'aws_key': {AWS_KEY},
+        'aws_secret_key: {AWS_SECRET_KEY},
+        's3_bucket': {AWS_S3_BUCKET},
+        's3_key': {AWS_S3_KEY} 
+    }
+    ```  
+    * The AWS_S3_BUCKET is the S3 bucket with S3_KEY (folder) containing the csv files:  
+        1. credits.csv (from Kaggle Movielens dataset)  
+        2. links.csv (from Kaggle Movielens dataset)  
+        3. movies_metadata.csv (from Kaggle Movielens dataset)  
+        4. ratings.csv (from Kaggle Movielens dataset)  
+        5. consumer_price_index.csv (from Fred St Louis dataset)
+
+2. `db_user` (user name of user with access to Redshift database)
+3. `db_pass` (password of user with access to Redshift database)
+4. `redshift_conn_string` (Redshift JDBC connection string for spark dataframe to write to Redshift)
+
+In addition, define the Hook to connect to Redshift:
+
+    Conn Id: `redshift`.  
+    Conn Type: `Postgres`.   
+    Host: Enter the endpoint of your Redshift cluster, excluding the port at the end. 
+    Schema: This is the Redshift database you want to connect to.  
+    Login: Enter Redshift user  
+    Password: Enter Redshift password  
+    Port: Enter `5439`.
+
+After configuring, visit Airflow UI and enable DAG to start the data pipeline
+
+## Acknowledgements
+---
+Many thanks to:
+* Udacity - for providing the project template and points of consideration :clap:
+* Rounak Banik - for providing me with the dataset I extracted from Kaggle and used :clap:
+* St Louis Fred - for providing me with the consumer price index data :clap:
