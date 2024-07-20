@@ -16,7 +16,7 @@
 ---
 The technical architecture for this project is as show below:  
   
-![Architecture]()
+![Architecture](/images/architecture.PNG)
 
 1. Data Extraction is done using Kaggle API and using GET request to St Louis Fred's CPI dataset.  
 Set up an EC2 instance with python and pip installed. Then, run `pip install kaggle`. To download the movielens dataset, run 
@@ -46,7 +46,7 @@ wget https://fred.stlouisfed.org/graph/fredgraph.csv?bgcolor=%23e1e9f0&chart_typ
 ---
 * The data model for this project is as shown below:  
   
-![Data Model]()  
+![Data Model](/images/data_model.png)  
   
 The approach taken, is to normalize the data. This will lead to more efficient UPDATES and DELETES as and when required.
 
@@ -54,7 +54,7 @@ The approach taken, is to normalize the data. This will lead to more efficient U
 ---
 The ETL process runs through an Airflow DAG:  
   
-![Data Model]()  
+![Data Model](/images/dag.PNG)  
   
 The process is as follows:
 1. We create the tables and staging tables (if they do not exist)  
